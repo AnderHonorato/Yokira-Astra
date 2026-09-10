@@ -1,0 +1,73 @@
+/* Arquivo: src/lib/componentes/player/trocar-origem.css */
+/* Fileira de opções abaixo do quadro. A atual é marcada por borda, fundo e pela palavra
+   "tocando": quem não distingue as cores continua sabendo qual está no ar. */
+
+.origens {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+.origens-rotulo {
+  font-size: var(--texto-12);
+  color: var(--cor-texto-terciario);
+  margin-right: var(--espaco-1);
+}
+
+.origens-opcao {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-chip);
+  background: var(--cor-fundo-elevado);
+  color: var(--cor-texto-secundario);
+  font: inherit;
+  font-size: var(--texto-12);
+  cursor: pointer;
+  transition:
+    background var(--transicao-rapida),
+    border-color var(--transicao-rapida),
+    color var(--transicao-rapida);
+}
+
+.origens-opcao:hover:not(:disabled):not(.origens-opcao-atual) {
+  background: var(--cor-superficie-hover);
+  color: var(--cor-texto);
+}
+
+.origens-opcao:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.origens-opcao:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: 2px;
+}
+
+.origens-opcao-atual {
+  border-color: var(--cor-marca);
+  background: var(--cor-marca-superficie);
+  color: var(--cor-texto);
+  cursor: default;
+}
+
+.origens-marca {
+  font-size: var(--texto-11);
+  color: var(--cor-marca-clara);
+}
+
+.origens-estado {
+  font-size: var(--texto-12);
+  color: var(--cor-texto-terciario);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .origens-opcao {
+    transition: none;
+  }
+}
