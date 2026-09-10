@@ -1,0 +1,108 @@
+/* Arquivo: src/lib/componentes/admin/fonte-por-link.css */
+/* O veredito muda de cor conforme o estado, mas a cor nunca é o único sinal: o rótulo em
+   negrito diz o mesmo em palavras, para quem não distingue as cores. */
+
+.link-fonte {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+}
+
+.link-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  font-size: var(--texto-13);
+  color: var(--cor-texto-secundario);
+}
+
+.link-campo input {
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-3);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background: var(--cor-fundo-elevado);
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: var(--texto-14);
+}
+
+.link-campo input:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: 1px;
+  border-color: var(--cor-marca);
+}
+
+.link-dica {
+  margin: 0;
+  font-size: var(--texto-12);
+  color: var(--cor-texto-terciario);
+  max-width: 62ch;
+}
+
+.link-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-3);
+}
+
+.link-erro {
+  margin: 0;
+  font-size: var(--texto-13);
+  color: var(--cor-erro-texto);
+}
+
+.link-veredito {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-left-width: 3px;
+  border-radius: var(--raio-painel);
+  background: var(--cor-superficie);
+}
+
+.link-veredito[data-estado='COMPATIVEL'] {
+  border-left-color: var(--cor-sucesso);
+}
+
+.link-veredito[data-estado='PRECISA_PROCESSAR'] {
+  border-left-color: var(--cor-marca);
+}
+
+.link-veredito[data-estado='INDISPONIVEL'],
+.link-veredito[data-estado='INCOMPATIVEL'] {
+  border-left-color: var(--cor-erro-borda);
+}
+
+.link-estado {
+  font-size: var(--texto-14);
+}
+
+.link-mensagem,
+.link-saida,
+.link-qualidades {
+  margin: 0;
+  font-size: var(--texto-13);
+  color: var(--cor-texto-secundario);
+}
+
+.link-saida {
+  color: var(--cor-texto);
+}
+
+.link-qualidades {
+  font-size: var(--texto-12);
+  color: var(--cor-texto-terciario);
+}
+
+.link-avisos {
+  margin: 0;
+  padding-left: var(--espaco-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-1);
+  font-size: var(--texto-12);
+  color: var(--cor-texto-terciario);
+}
