@@ -1,0 +1,14 @@
+node_modules
+.svelte-kit
+build
+package-lock.json
+prisma/migrations
+midia
+static/hls
+
+src/lib/servidor/banco/gerado
+.local
+.runtime
+docs/evidencias
+test-results
+playwright-report

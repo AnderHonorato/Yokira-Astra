@@ -1,0 +1,116 @@
+{
+  "counts": {
+    "Titulo": 15,
+    "Temporada": 54,
+    "Episodio": 796,
+    "ArquivoMidia": 5,
+    "VarianteHls": 15,
+    "Usuario": 8
+  },
+  "databaseBackup": "sqlite3 Connection.backup; original mode=ro; query_only",
+  "databaseSanitized": [
+    "sessions",
+    "tokens",
+    "password hashes invalidated"
+  ],
+  "rebased": [],
+  "notCopied": [
+    ".codex-remote-attachments/01a074c1-886a-7223-9c63-c47e285138a0/e3f378c9-e962-4fc3-9430-ca0e9bb4d77d/1-Photo-1.jpg",
+    ".codex-remote-attachments/01a074c1-886a-7223-9c63-c47e285138a0/e3f378c9-e962-4fc3-9430-ca0e9bb4d77d/2-Photo-2.jpg",
+    ".codex-remote-attachments/01a074c1-886a-7223-9c63-c47e285138a0/e3f378c9-e962-4fc3-9430-ca0e9bb4d77d/3-Photo-3.jpg",
+    ".codex-remote-attachments/01a074c1-886a-7223-9c63-c47e285138a0/e3f378c9-e962-4fc3-9430-ca0e9bb4d77d/4-Photo-4.jpg",
+    ".codex-remote-attachments/01a074c1-886a-7223-9c63-c47e285138a0/e3f378c9-e962-4fc3-9430-ca0e9bb4d77d/5-Photo-5.jpg",
+    ".env",
+    ".env.backup-antigo",
+    ".env.exemplo",
+    "dev.db",
+    "Exemplos (não alterar nada aqui)/Yokira Mobile.dc.html"
+  ],
+  "paths": {
+    "ArquivoMidia": [
+      [
+        "cmtbzqmxv0000p4uyl9lju9sw",
+        "midia\\originais\\0b6b777d-a5a4-4604-9c4f-429389c1b301.mp4"
+      ],
+      [
+        "cmtc7pd3j000cpcuy8gq96l6g",
+        "midia\\originais\\ded26b33-a689-4707-8c97-724d61ada5df.mp4"
+      ],
+      [
+        "cmtc7ps2p000gpcuy8lxyrsqz",
+        "midia\\originais\\3c7240c2-cab9-41d7-a18e-e1b44584190b.mp4"
+      ],
+      [
+        "cmtc7su70000qpcuy4ij9eun9",
+        "midia\\originais\\aac684c7-12da-4acc-bfe8-4b8278928074.mp4"
+      ],
+      [
+        "cmtc7w2kz0014pcuypcbni2jm",
+        "midia\\originais\\265c0fb8-3920-4223-a841-ef97e72ea1ab.mp4"
+      ]
+    ],
+    "VarianteHls": [
+      [
+        "cmtbzqnjw0002p4uylnnw2827",
+        "360p.m3u8"
+      ],
+      [
+        "cmtbzqokr0003p4uyjpnexl7w",
+        "720p.m3u8"
+      ],
+      [
+        "cmtbzqqxf0004p4uyifn7ez2p",
+        "1080p.m3u8"
+      ],
+      [
+        "cmtc7pjj4000fpcuydvv39qpz",
+        "360p.m3u8"
+      ],
+      [
+        "cmtc7pswz000jpcuya5mddwel",
+        "720p.m3u8"
+      ],
+      [
+        "cmtc7q5s6000kpcuy5w7kop2g",
+        "360p.m3u8"
+      ],
+      [
+        "cmtc7qpak000mpcuyjm9eczow",
+        "720p.m3u8"
+      ],
+      [
+        "cmtc7qvkq000npcuyovtkolpv",
+        "1080p.m3u8"
+      ],
+      [
+        "cmtc7riaw000opcuygng153ju",
+        "1080p.m3u8"
+      ],
+      [
+        "cmtc7t2nc000tpcuyqlncaqxy",
+        "360p.m3u8"
+      ],
+      [
+        "cmtc7tgnr000ypcuyxe6b6gva",
+        "720p.m3u8"
+      ],
+      [
+        "cmtc7u03n0010pcuy69o909kt",
+        "1080p.m3u8"
+      ],
+      [
+        "cmtc7w4b90017pcuywm68i53q",
+        "360p.m3u8"
+      ],
+      [
+        "cmtc7w78n0018pcuyjqe2epei",
+        "720p.m3u8"
+      ],
+      [
+        "cmtc7wc6m0019pcuyiukk15g7",
+        "1080p.m3u8"
+      ]
+    ],
+    "Legenda": []
+  }
+}
