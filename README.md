@@ -58,7 +58,7 @@ Alguns compromissos que valem saber de antemão:
 ## Como está organizado
 
 ```
-yokira-animees/
+yokira-astra/
 ├── docs/                     Documentação, capturas e scripts de medição
 ├── prisma/                   schema, migrations, seed e catálogo fictício
 ├── scripts/                  Ferramentas de terminal (encerrar, exportar, promover…)
