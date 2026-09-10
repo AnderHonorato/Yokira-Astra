@@ -88,19 +88,19 @@ episódios**, 5 arquivos de mídia, 15 variantes HLS, 8 usuários.
 
 ## Verificação final
 
-| Etapa                               | Resultado                                              |
-| ----------------------------------- | ------------------------------------------------------ |
-| Instalação do zero em segunda cópia | 390 pacotes, `postinstall` na ordem certa              |
-| `npm run typecheck`                 | 685 arquivos, 0 erros, 0 avisos                        |
-| `npm run lint`                      | limpo                                                  |
-| `npm run formatar:checar`           | limpo                                                  |
-| `npm run teste:unitario`            | 29 arquivos, **276 testes**, todos passando            |
-| `npm run build`                     | build de produção concluído                            |
-| `npm run iniciar` + smoke           | 200 e cabeçalhos de segurança no lugar                 |
-| `npm run encerrar`                  | derrubou o processo certo, no PowerShell nativo        |
-| `npx playwright test`               | **116 testes: 113 passando, 2 pulados (sem internet)** |
-| Auditoria visual                    | 32 telas, dois perfis, **0 erros de console**          |
-| Comparação com o original           | **nenhuma diferença**                                  |
+| Etapa                               | Resultado                                         |
+| ----------------------------------- | ------------------------------------------------- |
+| Instalação do zero em segunda cópia | 390 pacotes, `postinstall` na ordem certa         |
+| `npm run typecheck`                 | 685 arquivos, 0 erros, 0 avisos                   |
+| `npm run lint`                      | limpo                                             |
+| `npm run formatar:checar`           | limpo                                             |
+| `npm run teste:unitario`            | 29 arquivos, **276 testes**, todos passando       |
+| `npm run build`                     | build de produção concluído                       |
+| `npm run iniciar` + smoke           | 200 e cabeçalhos de segurança no lugar            |
+| `npm run encerrar`                  | derrubou o processo certo, no PowerShell nativo   |
+| `npx playwright test`               | **116 testes: 114 passando, 0 falhas, 2 pulados** |
+| Auditoria visual                    | 32 telas, dois perfis, **0 erros de console**     |
+| Comparação com o original           | **nenhuma diferença**                             |
 
 ## Pendências
 

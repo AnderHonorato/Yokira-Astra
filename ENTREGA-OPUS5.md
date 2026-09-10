@@ -159,8 +159,8 @@ mídia; `.env` criado a partir do `.env.exemplo`.
 
 ### Ponta a ponta (produção, dois perfis: celular 390 e desktop 1440)
 
-**116 testes: 113 passaram, 1 falha corrigida e reconferida, 2 pulados.** Os pulados são
-os que exigem internet, e o motivo aparece no relatório.
+**116 testes: 114 passaram, 0 falharam, 2 pulados.** Os pulados são os que exigem
+internet, e o motivo aparece no relatório em vez de virar falha silenciosa.
 
 Destaques verificados de verdade:
 
