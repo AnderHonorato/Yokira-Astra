@@ -1,32 +1,171 @@
-node_modules/
-.svelte-kit/
-build/
+# ---------------------------------------------------------------
+# Dados sensíveis / segredos  (NUNCA versionar)
+# ---------------------------------------------------------------
 .env
 .env.*
-!.env.exemplo
+!.env.example
+!.env.sample
+*.env
+secrets.json
+secrets.yml
+secrets.yaml
+config.local.*
+credentials.json
+client_secret*.json
+service-account*.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.*
+id_ed25519
+id_ed25519.*
+*.crt
+*.cer
+.htpasswd
+.netrc
+.npmrc
+.pypirc
+.aws/
+.gcloud/
+.ssh/
+tokens.json
+session.json
+cookies.txt
+
+# Banco de dados local / dumps
+*.sqlite
+*.sqlite3
 *.db
 *.db-journal
+*.sql
+*.dump
+*.bak
+/data/
+/backups/
+
+# ---------------------------------------------------------------
+# Node / JavaScript
+# ---------------------------------------------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+.parcel-cache/
+.cache/
+coverage/
+*.tsbuildinfo
+
+# ---------------------------------------------------------------
+# Python
+# ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.venv/
+venv/
+env/
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.tox/
+
+# ---------------------------------------------------------------
+# Logs / runtime / PID
+# ---------------------------------------------------------------
+*.log
+logs/
+*.pid
+*.pid.lock
+*.seed
+pids/
+tmp/
+temp/
+
+# ---------------------------------------------------------------
+# Uploads e mídia gerada pelo usuário
+# ---------------------------------------------------------------
+/uploads/
+/storage/
+/media/
+/public/uploads/
+
+# ---------------------------------------------------------------
+# Sistema operacional / editores
+# ---------------------------------------------------------------
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+!.vscode/extensions.json
+*.swp
+*.swo
+*~
+
+# ---------------------------------------------------------------
+# Docker / infra local
+# ---------------------------------------------------------------
+docker-compose.override.yml
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+
+# ---------------------------------------------------------------
+# Yokira Astra — regras próprias deste projeto
+# ---------------------------------------------------------------
+# Exceções às regras genéricas acima: o exemplo de variáveis de ambiente segue a
+# convenção do projeto (.env.exemplo) e as migrations do Prisma são código-fonte.
+!.env.exemplo
+!prisma/migrations/**/migration.sql
+
+# Banco SQLite local (dev.db na raiz) e arquivos auxiliares do SQLite
+*.db-wal
+*.db-shm
+*.sqlite-*
 prisma/dev.db*
-prisma/*.db
-# Ancorado na raiz de proposito: sem a barra da frente o padrao casava tambem
-# com src/lib/servidor/midia/ e src/routes/api/midia/, e esse codigo-fonte nunca
-# chegou a ser versionado.
+
+# Despejo do `npm run banco:exportar` (contém e-mails de usuários)
+backup*.json
+
+# Mídia enviada, segmentos HLS, capas, legendas e caixas de e-mail locais.
+# Ancorado na raiz de propósito: sem a barra o padrão casaria também com
+# src/lib/servidor/midia/ e src/routes/api/midia/, que são código-fonte.
 /midia/
 static/uploads/
 static/hls/
-test-results/
-playwright-report/
-.vercel/
-.DS_Store
-*.log
-.vite/
+
+# Anotação do processo do servidor (npm run iniciar / npm run encerrar)
+.runtime/
+
+# Scripts e consultas locais de quem está desenvolvendo
+.local/
+
+# Cliente do Prisma gerado por `prisma generate`
 src/lib/servidor/banco/gerado/
 
-.local/
-.runtime/
-*.db-wal
-*.db-shm
+# Artefatos de teste e de ferramentas
+test-results/
+playwright-report/
+.vite/
+.vercel/
 
-# Capturas da auditoria: sao evidencia de execucao, nao codigo. Ficam no disco de quem
-# rodou; versiona-las incharia o repositorio a cada rodada.
+# Capturas da auditoria visual: evidência de execução, não código
 docs/capturas/
