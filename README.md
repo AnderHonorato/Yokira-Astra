@@ -2,17 +2,12 @@
 
 <img src="static/marca/emblema-192.png" alt="Emblema Yōkira" width="96" />
 
-# Yōkira Animes
+# Yōkira Astra
 
-Plataforma de catálogo e streaming de animes, em português, construída com
-SvelteKit 5, Prisma e CSS puro.
+Plataforma de catálogo e streaming de animes, em português, feita com SvelteKit,
+Prisma, SQLite e FFmpeg.
 
-**Esta é a cópia de trabalho `yokira-astra`, versão 1.1.0.** Ela é independente do
-projeto original: banco, mídia, cookies, cache e porta são próprios. Nada aqui lê nem
-escreve na pasta do original.
-
-**Tudo roda em `http://localhost:4107`** — porta escolhida de propósito para não
-brigar com projetos que já ocupam a 3000 ou a 5173.
+**Roda em `http://localhost:4107`** (porta fixa, definida no `package.json`).
 
 </div>
 
@@ -20,556 +15,482 @@ brigar com projetos que já ocupam a 3000 ou a 5173.
 
 ## Índice
 
-1. [O que é](#o-que-é)
-2. [Como está organizado](#como-está-organizado)
-3. [Requisitos](#requisitos)
-4. [Instalação passo a passo](#instalação-passo-a-passo)
-5. [Executar o projeto](#executar-o-projeto)
-6. [Encerrar o servidor](#encerrar-o-servidor)
-7. [Contas de demonstração](#contas-de-demonstração)
-8. [Banco de dados](#banco-de-dados)
-9. [Vídeo, FFmpeg e HLS](#vídeo-ffmpeg-e-hls)
-10. [Painel administrativo](#painel-administrativo)
-11. [Testes e verificação](#testes-e-verificação)
-12. [Todos os comandos](#todos-os-comandos)
-13. [Variáveis de ambiente](#variáveis-de-ambiente)
-14. [Ir para produção](#ir-para-produção)
-15. [Erros comuns](#erros-comuns)
-16. [Documentação complementar](#documentação-complementar)
+1. [O que é e como funciona](#o-que-é-e-como-funciona)
+2. [Requisitos](#requisitos)
+3. [Instalação](#instalação)
+4. [Como rodar](#como-rodar)
+5. [Como encerrar](#como-encerrar)
+6. [Funcionalidades](#funcionalidades)
+7. [Login padrão](#login-padrão)
+8. [Variáveis de ambiente](#variáveis-de-ambiente)
+9. [Testes e verificação](#testes-e-verificação)
+10. [Todos os comandos](#todos-os-comandos)
+11. [Erros comuns](#erros-comuns)
+12. [Documentação complementar](#documentação-complementar)
 
 ---
 
-## O que é
+## O que é e como funciona
 
-Um catálogo de animes com hero rotativo, trilhas de cards arrastáveis, página de
-título com episódios por temporada, player HLS, lista pessoal, progresso de
-exibição, avaliações e um painel administrativo com upload e conversão de vídeo.
+Um catálogo de animes com home em trilhas, página de título com temporadas e
+episódios, player de vídeo próprio, lista pessoal, progresso de exibição,
+avaliações, contas com verificação de e-mail e um painel administrativo que cadastra
+títulos e dá vídeo aos episódios (por upload convertido em HLS ou por link).
 
-Alguns compromissos que valem saber de antemão:
+### Stack
 
-- **Nenhum emoji e nenhuma biblioteca de ícones.** Os 29 ícones são SVG próprios
-  em `src/lib/visual/icones/`, um arquivo por ícone.
-- **Nada de `alert()`, `confirm()` ou `prompt()`.** Ações destrutivas passam por
-  um diálogo próprio de dupla confirmação — validado também no servidor.
-- **Nenhum conteúdo de terceiros versionado.** O catálogo de exemplo é fictício e
-  os pôsteres são gradientes SVG gerados a partir do slug do título.
-- **Tudo em português**: arquivos, funções, variáveis, rotas, textos e commits.
+| Camada       | Tecnologia                                                                 |
+| ------------ | -------------------------------------------------------------------------- |
+| Front e back | SvelteKit 2 + Svelte 5, servidor Node via `@sveltejs/adapter-node`, Vite 8 |
+| Linguagem    | TypeScript                                                                 |
+| Banco        | SQLite (arquivo `dev.db`) via Prisma 7 + `@prisma/adapter-better-sqlite3`  |
+| Senhas       | Argon2 (`@node-rs/argon2`)                                                 |
+| Vídeo        | FFmpeg/ffprobe no servidor (conversão para HLS 360p/720p/1080p) e `hls.js` |
+| E-mail       | Terminal, arquivo local ou API do Resend (escolhido por variável)          |
+| Estilo       | CSS puro, sem framework de UI                                              |
+| Testes       | Vitest (unitários e integração) e Playwright (ponta a ponta)               |
 
-## Como está organizado
+### Como as partes se encaixam
+
+- **Páginas e API** ficam em `src/routes/`. As páginas são renderizadas no servidor;
+  os endpoints `+server.ts` em `src/routes/api/` atendem as ações do navegador
+  (lista, progresso, avaliação, audiência, painel etc.).
+- **Regras de servidor** ficam em `src/lib/servidor/`: autenticação e sessão, acesso
+  ao banco, gravação de upload, fila de conversão, e-mail, recomendações e mídia.
+- **`src/hooks.server.ts`** roda em toda requisição: lê o cookie de sessão
+  (`yokira_astra_sessao`), aplica o tema e devolve cabeçalhos de segurança. É também
+  onde sobe o **trabalhador da fila de conversão**, no mesmo processo web (a menos que
+  `SEM_TRABALHADOR` esteja definida).
+- **Banco**: o Prisma lê `DATABASE_URL` (`prisma.config.ts`) e gera o cliente em
+  `src/lib/servidor/banco/gerado/`. O schema e as migrations estão em `prisma/`.
+- **Mídia** (originais enviados, segmentos HLS, capas, legendas) fica em `midia/`,
+  fora de `static/` e fora do Git. Os segmentos só são servidos pelas rotas
+  `/midia/...` e `/api/midia/playlist`, com links assinados por HMAC usando
+  `SEGREDO_SESSAO`.
+- **Serviços externos**: FFmpeg (binário local, opcional) e Resend (só se
+  `EMAIL_TRANSPORTE=resend`). Vídeos por link podem vir de arquivo direto, playlist
+  HLS remota ou incorporação do YouTube/Vimeo.
+- **Navegador**: `src/service-worker.ts` guarda em cache os assets e o catálogo
+  público; o player carrega `hls.js` só quando o navegador não toca HLS nativamente.
+
+### Pastas
 
 ```
 yokira-astra/
-├── docs/                     Documentação, capturas e scripts de medição
-├── prisma/                   schema, migrations, seed e catálogo fictício
-├── scripts/                  Ferramentas de terminal (encerrar, exportar, promover…)
+├── .github/workflows/   CI: tipos, lint, formatação, testes e build a cada PR para main
+├── docs/                Documentação técnica e scripts de auditoria/medição
+├── prisma/              schema.prisma, migrations, seed e catálogo fictício
+├── scripts/             Ferramentas de terminal (iniciar, encerrar, contas, exportar/importar)
 ├── src/
 │   ├── lib/
-│   │   ├── estilos/          tema.css (todos os tokens), base.css, animacoes.css
-│   │   ├── visual/           icones/, molduras/, marca/, posters/
-│   │   ├── componentes/      casca/, home/, detalhes/, player/, comum/
-│   │   ├── cliente/          cache em IndexedDB, pré-carregamento, ações do usuário
-│   │   ├── servidor/         autenticacao/, banco/, armazenamento/, processamento/
-│   │   └── validacoes/       Regras compartilhadas entre tela e servidor
-│   ├── routes/               Páginas e endpoints
-│   ├── app.html              Casca HTML, favicon e fonte
-│   ├── hooks.server.ts       Sessão + cabeçalhos de segurança
-│   └── service-worker.ts     Cache de assets e do catálogo
-├── static/                   favicon.ico, emblemas, manifesto
-└── testes/                   unitarios/, integracao/, ponta-a-ponta/
+│   │   ├── cliente/     Código que roda só no navegador (cache, pré-carga, ações)
+│   │   ├── componentes/ Componentes Svelte: casca, home, detalhes, player, admin, comum
+│   │   ├── contratos/   Tipos compartilhados entre servidor e tela
+│   │   ├── estilos/     Tokens de tema e CSS base
+│   │   ├── servidor/    Autenticação, banco, armazenamento, processamento, e-mail, mídia
+│   │   ├── validacoes/  Regras de validação usadas na tela e no servidor
+│   │   └── visual/      Ícones SVG, marca, molduras e pôsteres gerados
+│   ├── routes/          Páginas, endpoints de API e rotas de mídia
+│   ├── app.html         Casca HTML
+│   ├── hooks.server.ts  Sessão, tema, cabeçalhos de segurança e trabalhador da fila
+│   └── service-worker.ts Cache de assets e do catálogo
+├── static/              Favicon, emblemas, fontes Inter e manifesto
+├── testes/              unitarios/, integracao/ e ponta-a-ponta/
+└── midia/               (gerada, fora do Git) uploads, HLS, capas, legendas, e-mails locais
 ```
-
-Cada componente é um par de arquivos com o mesmo nome: `nome.svelte` para a
-marcação e `nome.css` para o estilo (mais `nome.ts` quando há lógica). O CSS entra
-por `import './nome.css'` dentro do `<script>`, então as classes são globais e
-levam sempre o prefixo do componente. Detalhes em
-[`docs/sistema-visual.md`](docs/sistema-visual.md).
 
 ## Requisitos
 
-| Item        | Versão             | Observação                                                                     |
-| ----------- | ------------------ | ------------------------------------------------------------------------------ |
-| **Node.js** | **22 ou superior** | Testado no 22.22. O 20 não serve: usamos `import` de nível superior em scripts |
-| npm         | 10+                | Vem com o Node                                                                 |
-| FFmpeg      | 6+                 | **Opcional.** Só para converter vídeo. O app roda sem ele                      |
-| Git         | qualquer           | Para clonar                                                                    |
-
-Confira o que você tem:
+| Item                | Versão                                | Observação                                                    |
+| ------------------- | ------------------------------------- | ------------------------------------------------------------- |
+| Node.js             | 22 ou superior                        | É a versão usada no CI (`.github/workflows/verificacoes.yml`) |
+| npm                 | 10 ou superior                        | Vem com o Node                                                |
+| Banco               | —                                     | SQLite em arquivo; não precisa de servidor de banco           |
+| FFmpeg (+ ffprobe)  | qualquer recente                      | **Opcional.** Só para converter vídeo enviado por upload      |
+| Chromium Playwright | via `npx playwright install chromium` | Só para `npm run teste:ponta`                                 |
+| Git                 | qualquer                              | Para clonar                                                   |
 
 ```bash
-node --version    # precisa mostrar v22.x ou maior
+node --version
 npm --version
-ffmpeg -version   # opcional
+ffmpeg -version
 ```
 
-Sistema operacional: Linux, macOS ou **Windows nativo**. O `npm run encerrar` não
-depende mais de `lsof` nem de `fuser`: o `npm run iniciar` anota qual processo é o
-servidor deste projeto, e o encerrar derruba exatamente esse. Os comandos abaixo
-funcionam iguais no PowerShell e no terminal do Git Bash.
+## Instalação
 
-## Instalação passo a passo
-
-### 1. Entrar na pasta
+### 1. Clonar
 
 ```bash
-cd yokira-astra
+git clone https://github.com/AnderHonorato/Yokira-Astra.git
+cd Yokira-Astra
 ```
 
-### 2. Instalar as dependências
+### 2. Instalar dependências
 
 ```bash
 npm install
 ```
 
-O `postinstall` roda `svelte-kit sync && prisma generate`, **nessa ordem**. A ordem
-importa: o `prisma generate` precisa do `.svelte-kit/tsconfig.json`, e numa pasta
-recém-clonada esse arquivo ainda não existe. Sem o `svelte-kit sync` antes, o
-`npm install` falha no fim com um erro que não fala nada sobre o que faltou.
+O `postinstall` roda `svelte-kit sync && prisma generate`, gerando o cliente do
+Prisma em `src/lib/servidor/banco/gerado/` (pasta fora do Git).
 
-O cliente do Prisma sai em `src/lib/servidor/banco/gerado/`. Essa pasta é gerada e
-não vai para o Git — se você apagar, rode `npm run banco:gerar`.
-
-### 3. Criar o arquivo `.env`
+### 3. Criar o `.env` a partir do exemplo
 
 ```bash
+# Windows (PowerShell)
+Copy-Item .env.exemplo .env
+
+# Linux, macOS ou Git Bash
 cp .env.exemplo .env
 ```
 
-Abra o `.env` e troque **pelo menos** o `SEGREDO_SESSAO`. Gere um valor decente:
+Troque pelo menos o `SEGREDO_SESSAO`. Para gerar um valor:
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-O `.env` já vem com `PORT=4107` e `DATABASE_URL="file:./dev.db"`, então em
-desenvolvimento não é preciso mexer em mais nada.
+### 4. Migrar e semear o banco
 
-### 4. Criar o banco e popular
-
-```bash
-npm run preparar         # sync + generate + migrations + seed, em um comando
-```
-
-Ou passo a passo:
+Tudo de uma vez (sync + generate + `prisma migrate deploy` + seed):
 
 ```bash
-npm run banco:migrar     # cria dev.db e aplica as migrations
-npm run banco:semear     # títulos fictícios, gêneros, episódios e contas
+npm run preparar
 ```
 
-O seed é idempotente: pode rodar de novo quantas vezes quiser sem duplicar nada.
-
-### 4b. Senha conhecida para entrar
-
-O seed não troca a senha de uma conta que já existe — então, num banco herdado, a
-senha do administrador pode não ser a do seed. Para garantir acesso local:
+Ou em etapas:
 
 ```bash
-npm run contas:locais
+npm run banco:migrar   # prisma migrate dev: cria dev.db e aplica as migrations
+npm run banco:semear   # gêneros, títulos fictícios, temporadas, episódios e contas
 ```
 
-Ele reajusta `admin@yokira.local` e `espectador@yokira.local` para
-`YokiraLocal#2026` e imprime as credenciais. **Vale só nesta cópia local.**
+O seed é idempotente: rodar de novo não duplica registros.
 
-### 5. Conferir se está tudo de pé
+### 5. Conferir
 
 ```bash
 npm run verificar
 ```
 
-Roda typecheck, lint, checagem de formatação e os testes unitários e de
-integração. Se isso passar, a instalação está correta.
+## Como rodar
 
-## Executar o projeto
-
-### Desenvolvimento (com recarga automática)
+### Desenvolvimento
 
 ```bash
 npm run dev
 ```
 
-Abre em **http://localhost:4107**. A porta é fixa (`strictPort`): se estiver
-ocupada, o Vite **falha em vez de pular para outra** — assim você nunca fica na
-dúvida sobre em qual porta o projeto subiu. Veja
-[Encerrar o servidor](#encerrar-o-servidor) se isso acontecer.
+Executa `vite dev --port 4107 --strictPort`, com recarga automática.
+Acesse **http://localhost:4107**. Com `--strictPort`, se a porta estiver ocupada o
+Vite falha em vez de subir em outra.
 
-### Produção (build otimizado)
+### Produção
 
 ```bash
-npm run build     # gera a pasta build/
-npm run iniciar   # sobe em http://localhost:4107
+npm run build     # gera build/
+npm run iniciar   # sobe o build
 ```
 
-`npm run iniciar` usa `scripts/iniciar-servidor.ts`, que carrega o `.env` e força
-`PORT=4107`. Rodar `node build/index.js` direto **sobe na 3000**, porque é o
-padrão do adaptador Node e ele não lê arquivo de configuração.
+`npm run iniciar` executa `scripts/iniciar-servidor.ts`, que carrega o `.env`, usa
+`PORT` (padrão `4107`), `HOST` (padrão `127.0.0.1`) e `ORIGIN` (padrão
+`http://localhost:<PORT>`), anota o processo em `.runtime/servidor.json` e sobe o
+`build/index.js`. Acesse **http://localhost:4107**.
 
-Atalho que limpa a porta, reconstrói e sobe:
+Atalho que encerra o servidor anotado, reconstrói e sobe de novo:
 
 ```bash
 npm run iniciar:limpo
 ```
 
-### Ver o build sem o servidor Node
+Pré-visualizar o build com o Vite (também na 4107):
 
 ```bash
-npm run preview   # também na 4107
+npm run preview
 ```
 
-## Encerrar o servidor
+> Rodar `node build/index.js` diretamente não lê o `.env` e sobe na porta padrão do
+> adapter-node (3000). Use `npm run iniciar`.
 
-### Se o terminal ainda está aberto
+Em produção, defina também `NODE_ENV=production`, um `SEGREDO_SESSAO` próprio (o
+servidor recusa servir mídia com o valor de exemplo) e `ORIGIN` com o domínio real.
 
-`Ctrl + C` na janela onde o servidor está rodando. É o jeito limpo.
+## Como encerrar
 
-### Se você fechou o terminal
+### Parada limpa
+
+`Ctrl + C` no terminal onde o servidor está rodando (vale para `npm run dev`,
+`npm run iniciar` e `npm run preview`).
+
+### Script do projeto
 
 ```bash
 npm run encerrar
 ```
 
-O `npm run iniciar` deixa anotado, em `.runtime/servidor.json`, qual processo é o
-servidor **deste** projeto. O encerrar lê essa anotação e derruba só ele:
+Executa `scripts/encerrar-servidor.ts`: lê `.runtime/servidor.json` e envia
+`SIGTERM` **só** ao processo anotado pelo `npm run iniciar`. Se não houver anotação,
+ele avisa e não mata nada — portanto **não encerra o `npm run dev`** nem o
+`npm run preview`, que não fazem essa anotação.
 
-```
-Servidor encerrado (processo 20068, porta 4107).
-```
+### Porta presa (Windows)
 
-Se não houver anotação, ele diz isso e **não faz nada**. É proposital: a versão
-anterior perguntava ao sistema quem estava na porta e matava, o que derrubava
-outro projeto que tivesse pegado a porta primeiro.
-
-### Se a porta continuar ocupada por outra coisa
-
-Aí o processo não é nosso, e a decisão é sua. Para ver quem está lá:
+Descubra o PID que está escutando na porta:
 
 ```bash
-# Windows (PowerShell)
+netstat -ano | findstr :4107
+```
+
+A última coluna é o PID. Confira que é um processo `node.exe` antes de matar:
+
+```bash
+tasklist /FI "PID eq <pid>"
+```
+
+Encerre:
+
+```bash
+taskkill /PID <pid> /F
+```
+
+Alternativa em PowerShell:
+
+```powershell
 Get-NetTCPConnection -LocalPort 4107 -State Listen | Select-Object OwningProcess
-
-# Linux e macOS
-lsof -ti tcp:4107
+Stop-Process -Id <pid> -Force
 ```
 
-### Como confirmar que caiu
+Linux e macOS: `lsof -ti tcp:4107` para ver o PID e `kill <pid>` para encerrar.
+
+## Funcionalidades
+
+### Área pública
+
+- **Home (`/`)**: banner de destaque, trilhas de cards em carrossel, trilha
+  "Em alta agora" calculada pela audiência recente (com a marcação manual do painel
+  como reserva quando ainda não há audiência), trilhas pessoais para quem está logado
+  (`/api/para-voce`), faixa promocional e mensagem de boas-vindas editáveis no painel.
+- **Catálogo (`/catalogo`)**, **Gêneros (`/generos`)**, **Novidades (`/novidades`)**
+  com os episódios recém-adicionados e **Buscar (`/buscar`)**.
+- **Página do título (`/titulo/[slug]`)**: sinopse, métricas (visualizações e
+  curtidas), temporadas e episódios, avaliação e botão de Minha Lista.
+- **Assistir (`/assistir/[episodioId]`)**: player com controles próprios, HLS
+  (nativo ou `hls.js`), incorporação de YouTube/Vimeo, troca de origem do vídeo,
+  pergunta para retomar de onde parou, legendas, progresso salvo e contagem de
+  audiência.
+- **Minha Lista (`/minha-lista`)**.
+- **Conta**: criar conta (`/cadastrar`), entrar (`/entrar`), sair (`/sair`),
+  confirmar e-mail (`/verificar-email`), recuperar e redefinir senha por link enviado
+  por e-mail (`/recuperar-senha`, `/redefinir-senha`).
+- **Configurações (`/configuracoes`)**: tema claro/escuro, número de sessões ativas,
+  reenviar confirmação de e-mail, limpar dados baixados, limpar histórico de
+  exibição, encerrar todas as sessões e excluir a conta — as ações críticas passam
+  por dupla confirmação validada também no servidor.
+- **Cache offline**: service worker com cache de assets e do catálogo, e aviso na
+  tela quando a conexão cai.
+
+### Painel administrativo (`/admin`)
+
+Exige papel **EDITOR** ou superior. Papéis existentes: `ESPECTADOR`, `EDITOR`,
+`MODERADOR`, `ADMINISTRADOR`.
+
+| Área      | Caminho                                 | Papel mínimo  | O que faz                                                                                                                              |
+| --------- | --------------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Painel    | `/admin`                                | EDITOR        | Contagem de títulos e episódios, disponibilidade do FFmpeg e fila de conversão                                                         |
+| Títulos   | `/admin/titulos`, `/admin/titulos/[id]` | EDITOR        | Criar, editar e publicar títulos (série ou filme), temporadas, episódios, episódios em lote e capa (imagem enviada ou quadro do vídeo) |
+| Vídeo     | `/admin/enviar`                         | EDITOR        | Escolher o episódio e enviar arquivo (upload em fluxo) ou colar link verificado; escolher qual origem fica no ar                       |
+| Faixas    | `/admin/faixas`                         | EDITOR        | Texto, cores e liga/desliga da faixa da home e da mensagem de boas-vindas                                                              |
+| Denúncias | `/admin/denuncias`                      | MODERADOR     | Listar denúncias, marcar como resolvida e reabrir                                                                                      |
+| Registro  | `/admin/registro`                       | MODERADOR     | As 100 ações administrativas mais recentes                                                                                             |
+| Usuários  | `/admin/usuarios`                       | ADMINISTRADOR | Buscar contas, trocar papel e remover                                                                                                  |
+
+Promover uma conta existente a administrador é feito só pelo terminal:
 
 ```bash
-curl -s -o /dev/null -w "%{http_code}
-" http://localhost:4107/
+npm run banco:promover -- email@dominio.com
 ```
 
-`000` significa que não há ninguém atendendo — porta livre. `200` significa que o
-servidor continua no ar.
+### Conversão de vídeo
 
-## Contas de demonstração
+Arquivos enviados vão para `midia/originais/`, entram numa fila persistida no banco
+(com até três tentativas) e são convertidos pelo FFmpeg em HLS (360p, 720p e 1080p)
+em `midia/hls/`. Sem FFmpeg, o site funciona normalmente, mas a conversão de upload
+não roda. Detalhes em [`docs/fontes-de-midia.md`](docs/fontes-de-midia.md).
 
-Criadas pelo `npm run banco:semear`. **São de desenvolvimento** — troque antes de
-qualquer coisa parecida com produção.
+## Login padrão
 
-| Papel         | E-mail                    | Senha              |
-| ------------- | ------------------------- | ------------------ |
-| Administrador | `admin@yokira.local`      | `YokiraAdmin#2024` |
-| Espectador    | `espectador@yokira.local` | `YokiraDemo#2024`  |
+> [!WARNING]
+> **Credenciais de desenvolvimento.** Existem para testar localmente. Troque as
+> senhas (ou remova as contas) antes de qualquer exposição pública.
 
-As credenciais do administrador vêm de `ADMIN_EMAIL` e `ADMIN_SENHA` no `.env`.
+Criadas por `npm run banco:semear` (arquivo `prisma/contas-de-demonstracao.ts`):
 
-Para promover uma conta já existente:
+| Papel         | E-mail                    | Senha              | De onde vem                                                   |
+| ------------- | ------------------------- | ------------------ | ------------------------------------------------------------- |
+| Administrador | `admin@yokira.local`      | `YokiraAdmin#2024` | `ADMIN_EMAIL` / `ADMIN_SENHA` do `.env`; esses são os padrões |
+| Espectador    | `espectador@yokira.local` | `YokiraDemo#2024`  | Fixo no código do seed                                        |
+
+O seed **não troca a senha de uma conta que já existe**. Se o banco veio de outro
+lugar e a senha não confere, rode:
 
 ```bash
-npm run banco:promover -- seu-email@dominio.com
+npm run contas:locais
 ```
 
-Isso é feito por terminal de propósito: escalar privilégio pela interface é
-convite a acidente.
+Ele cria ou reajusta as duas contas (`scripts/criar-contas-locais.ts`) com a senha
+`YokiraLocal#2026` — o e-mail e a senha do administrador podem ser trocados por
+`ADMIN_LOCAL_EMAIL` e `ADMIN_LOCAL_SENHA` — e imprime as credenciais no terminal.
 
-## Banco de dados
+## Variáveis de ambiente
 
-SQLite em desenvolvimento, PostgreSQL preparado para produção. O arquivo
-`dev.db` fica na raiz e **não vai para o Git**.
+Todas as variáveis da aplicação estão em `.env.exemplo`. Os valores abaixo são
+exemplos/padrões, nunca segredos reais.
 
-| Comando                                 | O que faz                                         |
-| --------------------------------------- | ------------------------------------------------- |
-| `npm run banco:migrar`                  | Cria/atualiza o banco a partir do `schema.prisma` |
-| `npm run banco:gerar`                   | Regenera o cliente do Prisma                      |
-| `npm run banco:semear`                  | Popula com o catálogo fictício e as contas        |
-| `npm run banco:reiniciar`               | **Apaga tudo**, recria e semeia de novo           |
-| `npm run banco:exportar > backup.json`  | Despeja o conteúdo em JSON                        |
-| `npm run banco:importar -- backup.json` | Recria os registros a partir do JSON              |
-| `npx prisma studio`                     | Abre o navegador de dados do Prisma               |
+| Variável                 | Para que serve                                                                     | Exemplo / padrão                                     |
+| ------------------------ | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| `DATABASE_URL`           | Conexão do Prisma com o SQLite                                                     | `file:./dev.db`                                      |
+| `SEGREDO_SESSAO`         | Assina links de mídia (HLS) e sessões; em produção não pode ser o valor de exemplo | `troque-este-valor-por-uma-string-longa-e-aleatoria` |
+| `PORT`                   | Porta do `npm run iniciar`                                                         | `4107`                                               |
+| `HOST`                   | Interface em que o servidor de produção escuta                                     | `127.0.0.1`                                          |
+| `ORIGIN`                 | URL pública; obrigatória e correta em produção (proteção CSRF do SvelteKit)        | `http://localhost:4107`                              |
+| `PASTA_UPLOADS`          | Onde os vídeos enviados são gravados                                               | `./midia/originais`                                  |
+| `PASTA_HLS`              | Onde saem os segmentos HLS (não pode ficar dentro de `static/`)                    | `./midia/hls`                                        |
+| `PASTA_CAPAS`            | Onde ficam as capas                                                                | `./midia/capas`                                      |
+| `PASTA_LEGENDAS`         | Onde ficam as legendas                                                             | `./midia/legendas`                                   |
+| `LIMITE_UPLOAD_BYTES`    | Tamanho máximo de upload                                                           | `8589934592` (8 GB)                                  |
+| `CAMINHO_FFMPEG`         | Binário do FFmpeg                                                                  | `ffmpeg`                                             |
+| `CAMINHO_FFPROBE`        | Binário do ffprobe (por padrão, ao lado do FFmpeg)                                 | `ffprobe`                                            |
+| `CONVERSOES_SIMULTANEAS` | Conversões em paralelo (teto 4)                                                    | `1`                                                  |
+| `SEM_TRABALHADOR`        | Com qualquer valor, o processo web não consome a fila de conversão                 | _(vazio)_                                            |
+| `EMAIL_TRANSPORTE`       | `console` (padrão), `arquivo` ou `resend`                                          | `arquivo`                                            |
+| `EMAIL_ARQUIVO`          | Arquivo que recebe uma linha JSON por e-mail quando o transporte é `arquivo`       | `./midia/emails-locais.log`                          |
+| `EMAIL_REMETENTE`        | Remetente dos e-mails                                                              | `Yokira Astra <local@yokira.test>`                   |
+| `RESEND_API_KEY`         | Chave da API do Resend, exigida só com `EMAIL_TRANSPORTE=resend`                   | `re_xxxxxxxxxxxxxxxx`                                |
+| `ADMIN_EMAIL`            | E-mail do administrador criado pelo seed                                           | `admin@yokira.local`                                 |
+| `ADMIN_SENHA`            | Senha desse administrador                                                          | `YokiraAdmin#2024`                                   |
+| `ADMIN_LOCAL_EMAIL`      | E-mail do administrador do `npm run contas:locais`                                 | `admin@yokira.local`                                 |
+| `ADMIN_LOCAL_SENHA`      | Senha usada pelo `npm run contas:locais`                                           | `YokiraLocal#2026`                                   |
+| `NODE_ENV`               | `production` ativa as exigências de produção (segredo próprio, cookie seguro)      | `production`                                         |
 
-Para migrar para PostgreSQL, siga
-[`docs/migracao-postgresql.md`](docs/migracao-postgresql.md) — o código da
-aplicação não muda, só o adaptador e a URL.
+Só para testes e scripts de auditoria:
 
-## Vídeo, FFmpeg e HLS
+| Variável              | Para que serve                                         | Exemplo / padrão       |
+| --------------------- | ------------------------------------------------------ | ---------------------- |
+| `PORTA_TESTE`         | Porta em que o Playwright sobe o build                 | `4100`                 |
+| `CHROMIUM_EXECUTAVEL` | Caminho de um Chromium já instalado, para o Playwright | `/caminho/do/chromium` |
+| `CI`                  | Liga retentativas e o reporter do GitHub no Playwright | `true`                 |
 
-Um episódio pode receber vídeo de quatro origens: **arquivo enviado**, **link direto
-para o arquivo**, **playlist HLS remota** e **incorporação do YouTube ou do Vimeo**.
-Só a primeira precisa de FFmpeg — as outras três tocam da origem, sem cópia.
-
-A matriz completa do que é aceito, do que é verificado e do que a gente **não**
-promete está em [`docs/fontes-de-midia.md`](docs/fontes-de-midia.md). Vale ler antes
-de colar o primeiro link.
-
-O app **funciona sem FFmpeg**: o catálogo, a navegação e todas as telas aparecem
-normalmente, e link e incorporação continuam funcionando. Sem ele, o que não roda é a
-conversão de arquivo enviado — o episódio fica na fila até alguém instalar.
-
-### Instalar
-
-```bash
-# Ubuntu / Debian
-sudo apt install ffmpeg
-
-# macOS
-brew install ffmpeg
-
-# Windows
-winget install Gyan.FFmpeg
-```
-
-Se o binário não estiver no PATH, aponte no `.env`:
-
-```env
-CAMINHO_FFMPEG="/caminho/completo/para/ffmpeg"
-```
-
-### Gerar um vídeo de teste
-
-Sem depender de nenhum arquivo de terceiro:
-
-```bash
-npm run video:teste -- midia/teste.mp4 20
-```
-
-Cria um mp4 sintético de 20 segundos (barras de cor e um tom de áudio) em
-`midia/`. Use esse arquivo no painel para exercitar o pipeline inteiro.
-
-### Como funciona a conversão
-
-1. O arquivo sobe **em fluxo** para `/api/admin/fontes/arquivo` e é gravado em
-   `midia/originais/` — **fora de `static/`**, com nome gerado por `randomUUID()`.
-   Os bytes vão para o disco enquanto chegam: um vídeo de horas nunca passa inteiro
-   pela memória do servidor. O envio mostra progresso real e pode ser cancelado.
-2. Um `TrabalhoProcessamento` entra na fila com **dono e prazo**. Se o processo cair
-   no meio, o prazo vence e outro executor retoma — até três tentativas. É o que
-   evita o episódio preso em "sendo preparado" para sempre.
-3. Saem três variantes — 360p, 720p e 1080p — em `midia/hls/<id-do-arquivo>/`, mais
-   a playlist mestre `mestre.m3u8`. Depois disso o `ffprobe` lê a duração real e
-   corrige o cadastro do episódio.
-4. **A fonte nova só entra no ar quando a conversão termina.** Até lá, o vídeo antigo
-   do episódio continua tocando.
-5. O player carrega `hls.js` por import dinâmico, e só em navegador que não toca HLS
-   nativamente. No Safari o suporte é nativo e a biblioteca nem é baixada.
-
-### Onde o trabalhador da fila roda
-
-Hoje ele sobe junto com o processo web (`src/hooks.server.ts`), o que serve para uma
-instalação só. `CONVERSOES_SIMULTANEAS` controla quantas conversões rodam ao mesmo
-tempo (padrão 1, teto 4) — o FFmpeg usa o processador inteiro, e três conversões
-juntas deixam o site lento para quem só quer assistir.
-
-Para separar em um processo próprio, suba outra instância com `SEM_TRABALHADOR=1` no
-processo web e sem essa variável no processo de conversão. A fila já aguenta os dois
-lendo a mesma tabela: a reivindicação é atômica e o prazo protege contra trabalho
-duplicado.
-
-Nada disso vai para o Git: `midia/` está no `.gitignore`. E nada de mídia mora em
-`static/`: lá o servidor de arquivos entregaria os segmentos sem sessão nem
-assinatura — veja `docs/seguranca.md`.
-
-## Painel administrativo
-
-Em `/admin`, exige papel **EDITOR** ou superior. Mostra a contagem de títulos e
-episódios, se o FFmpeg está disponível e a fila de processamento.
-
-| Área      | Caminho            | Papel mínimo  | O que faz                                               |
-| --------- | ------------------ | ------------- | ------------------------------------------------------- |
-| Títulos   | `/admin/titulos`   | EDITOR        | Criar, buscar, editar, publicar; temporadas e episódios |
-| Denúncias | `/admin/denuncias` | MODERADOR     | Ver abertas e resolvidas, marcar resolvida e reabrir    |
-| Registro  | `/admin/registro`  | MODERADOR     | As 100 ações administrativas mais recentes              |
-| Usuários  | `/admin/usuarios`  | ADMINISTRADOR | Buscar contas, trocar papel, remover                    |
-| Vídeo     | `/admin/enviar`    | EDITOR        | Arquivo ou link, e qual origem fica no ar               |
-| Faixas    | `/admin/faixas`    | EDITOR        | Texto e cores da faixa da home e das boas-vindas        |
-
-Tudo que apaga passa pela dupla confirmação, e o servidor exige o token de uso
-único emitido no passo 1 — pular a tela e chamar a API direto não funciona.
-Não é possível rebaixar o último administrador.
-
-As listas mostram no máximo 100 linhas, da mais recente para a mais antiga; a
-tela avisa quando bate no teto e a busca resolve o resto.
-
-### Dar vídeo a um episódio
-
-1. Entre com `admin@yokira.local` e abra `/admin/enviar`.
-2. **Passo 1 — qual episódio.** Digite o nome do anime ou do episódio. A lista é
-   paginada e cobre o catálogo inteiro; ela também marca quais já têm vídeo.
-3. **Passo 2 — de onde vem o vídeo.** Duas abas:
-   - **Enviar arquivo**: `.mp4`, `.mkv`, `.mov` ou `.webm`. A tela mostra o limite
-     real e o progresso do envio, e dá para cancelar no meio.
-   - **Usar link**: cole o endereço e clique em **Verificar vídeo**. O veredito diz
-     um de quatro estados — _Vídeo pronto_, _Precisa converter_, _Indisponível_ ou
-     _Não dá para usar_ — e vem com uma prévia que roda neste navegador.
-4. **Origens deste episódio**, no fim da página, lista tudo que já foi cadastrado e
-   qual está no ar. Trocar é um clique e não apaga a anterior.
-
-Colar um link **não baixa nada por padrão**. Só o que o navegador não tocaria é
-trazido para cá e convertido. O detalhe está em
-[`docs/fontes-de-midia.md`](docs/fontes-de-midia.md).
-
-Use apenas conteúdo que você tem direito de distribuir.
-
-### Faixa da home e boas-vindas
-
-Em `/admin/faixas` dá para escrever o texto, escolher as duas cores do degradê e
-ligar ou desligar cada faixa, com prévia ao lado usando o mesmo componente que a home
-renderiza. A cor do texto é calculada a partir do degradê, então uma combinação clara
-não deixa a faixa ilegível. Desligada — ou sem texto — ela não aparece para ninguém.
-
-A mensagem de boas-vindas aparece **uma vez**, na home, no primeiro acesso de cada
-pessoa depois de entrar.
+O nome do cookie de sessão não é variável de ambiente: é a constante
+`NOME_COOKIE_SESSAO` em `src/lib/servidor/autenticacao/sessao.ts`.
 
 ## Testes e verificação
 
 ```bash
-npm run verificar        # typecheck + lint + formatação + unitários + integração
-npm run teste:unitario   # Vitest
-npm run teste:ponta      # Playwright em 390 px e 1440 px
+npm run verificar        # typecheck + lint + formatação + unitários/integração
+npm run typecheck        # svelte-kit sync + svelte-check
+npm run lint             # ESLint
+npm run formatar:checar  # Prettier (só confere)
+npm run teste:unitario   # Vitest: testes/unitarios e testes/integracao
+npm run teste:ponta      # Playwright: celular 390 px e desktop 1440 px
 ```
 
-Os testes de integração criam um SQLite temporário próprio e rodam as migrations
-nele — banco de verdade, não simulado.
-
-O Playwright sobe o **build de produção** na porta **4100**, justamente para não
-derrubar o `npm run dev` que você deixou aberto na 4107. Antes da primeira
-execução:
+- Os testes de integração criam um SQLite temporário e aplicam as migrations.
+- O Playwright faz o build, prepara um banco próprio (`midia/teste.db`, via
+  `npm run teste:preparar`) e sobe o servidor na porta **4100**, sem mexer no
+  `dev.db` nem na 4107. Antes da primeira execução:
 
 ```bash
 npx playwright install chromium
 ```
 
-Se o Chromium já estiver instalado em outro caminho:
-
-```bash
-CHROMIUM_EXECUTAVEL=/caminho/do/chromium npm run teste:ponta
-```
-
 ## Todos os comandos
 
-| Comando                             | O que faz                              |
-| ----------------------------------- | -------------------------------------- |
-| `npm run dev`                       | Servidor de desenvolvimento na 4107    |
-| `npm run build`                     | Build de produção em `build/`          |
-| `npm run iniciar`                   | Sobe o build na 4107                   |
-| `npm run iniciar:limpo`             | Libera a porta, reconstrói e sobe      |
-| `npm run preview`                   | Pré-visualiza o build na 4107          |
-| `npm run encerrar`                  | Mata quem estiver na 4107              |
-| `npm run verificar`                 | Typecheck + lint + formatação + testes |
-| `npm run typecheck`                 | Só a checagem de tipos                 |
-| `npm run lint`                      | Só o ESLint                            |
-| `npm run formatar`                  | Aplica o Prettier                      |
-| `npm run teste:unitario`            | Vitest                                 |
-| `npm run teste:ponta`               | Playwright                             |
-| `npm run banco:migrar`              | Migrations                             |
-| `npm run banco:semear`              | Popula o banco                         |
-| `npm run banco:reiniciar`           | Apaga e recria o banco                 |
-| `npm run banco:promover -- email`   | Torna a conta administradora           |
-| `npm run banco:exportar`            | Despejo em JSON                        |
-| `npm run banco:importar -- arquivo` | Restaura do JSON                       |
-| `npm run video:teste`               | Gera mp4 sintético para testes         |
+| Comando                                         | O que faz                                                                      |
+| ----------------------------------------------- | ------------------------------------------------------------------------------ |
+| `npm run dev`                                   | Servidor de desenvolvimento na 4107 (porta estrita)                            |
+| `npm run build`                                 | Build de produção em `build/`                                                  |
+| `npm run preview`                               | Pré-visualiza o build na 4107                                                  |
+| `npm run iniciar`                               | Sobe o build com o `.env` carregado e anota o processo                         |
+| `npm run iniciar:limpo`                         | `encerrar` + `build` + `iniciar`                                               |
+| `npm run encerrar`                              | Encerra o processo anotado pelo `iniciar`                                      |
+| `npm run typecheck`                             | `svelte-kit sync` + `svelte-check`                                             |
+| `npm run lint`                                  | ESLint                                                                         |
+| `npm run formatar`                              | Aplica o Prettier                                                              |
+| `npm run formatar:checar`                       | Confere a formatação sem alterar                                               |
+| `npm run teste:unitario`                        | Vitest (unitários e integração)                                                |
+| `npm run teste:ponta`                           | Playwright                                                                     |
+| `npm run teste:preparar`                        | `prisma migrate deploy` + seed (usado pelo Playwright)                         |
+| `npm run verificar`                             | typecheck + lint + formatar:checar + teste:unitario                            |
+| `npm run banco:migrar`                          | `prisma migrate dev`                                                           |
+| `npm run banco:gerar`                           | `prisma generate`                                                              |
+| `npm run banco:semear`                          | Executa o seed (`prisma/seed.ts`)                                              |
+| `npm run banco:reiniciar`                       | **Apaga o banco**, reaplica as migrations e semeia                             |
+| `npm run banco:promover -- <email>`             | Torna uma conta existente ADMINISTRADOR                                        |
+| `npm run banco:exportar > backup.json`          | Despeja gêneros, títulos, temporadas, episódios e usuários (sem senha) em JSON |
+| `npm run banco:importar -- backup.json`         | Recria o catálogo a partir do JSON (usuários não são importados)               |
+| `npm run contas:locais`                         | Cria/reajusta as contas locais com senha conhecida                             |
+| `npm run preparar`                              | sync + generate + `prisma migrate deploy` + seed                               |
+| `npm run video:teste -- <saida.mp4> <segundos>` | Gera um vídeo sintético com FFmpeg para testar o pipeline                      |
+| `postinstall` (automático)                      | `svelte-kit sync` + `prisma generate` após o `npm install`                     |
 
-## Variáveis de ambiente
-
-Todas em `.env.exemplo`. As que importam:
-
-| Variável                 | Padrão                  | Para que serve                                   |
-| ------------------------ | ----------------------- | ------------------------------------------------ |
-| `DATABASE_URL`           | `file:./dev.db`         | Conexão do Prisma                                |
-| `SEGREDO_SESSAO`         | _(troque)_              | Segredo de sessão e tokens                       |
-| `PORT`                   | `4107`                  | Porta do servidor                                |
-| `ORIGIN`                 | `http://localhost:4107` | Origem pública — **obrigatória** em produção     |
-| `PASTA_UPLOADS`          | `./midia/originais`     | Onde os originais são gravados                   |
-| `PASTA_HLS`              | `./midia/hls`           | Onde saem os segmentos HLS (nunca em `static/`)  |
-| `CAMINHO_FFMPEG`         | `ffmpeg`                | Binário do FFmpeg                                |
-| `CAMINHO_FFPROBE`        | ao lado do FFmpeg       | Binário do ffprobe, usado para ler a duração     |
-| `LIMITE_UPLOAD_BYTES`    | 8 GB                    | Teto real de upload, conferido durante a escrita |
-| `CONVERSOES_SIMULTANEAS` | `1`                     | Conversões em paralelo (teto 4)                  |
-| `SEM_TRABALHADOR`        | _(vazio)_               | Com valor, o processo web não consome a fila     |
-| `PASTA_LEGENDAS`         | `./midia/legendas`      | Onde ficam os arquivos de legenda                |
-| `ADMIN_EMAIL`            | `admin@yokira.local`    | Conta criada pelo seed                           |
-| `ADMIN_SENHA`            | `YokiraAdmin#2024`      | Senha dessa conta                                |
-
-`ORIGIN` errada em produção quebra o envio de formulários: o SvelteKit rejeita
-POST de origem diferente por proteção contra CSRF.
-
-## Ir para produção
-
-```bash
-npm ci
-npx prisma generate
-npx prisma migrate deploy      # nunca `migrate dev` em produção
-npm run build
-PORT=4107 ORIGIN=https://seu-dominio node build/index.js
-```
-
-Lista de conferência:
-
-- [ ] `SEGREDO_SESSAO` longo e aleatório, fora do repositório
-- [ ] `ORIGIN` apontando para o domínio real, com `https`
-- [ ] `NODE_ENV=production` (o cookie de sessão só ganha `Secure` assim)
-- [ ] PostgreSQL no lugar do SQLite ([guia](docs/migracao-postgresql.md))
-- [ ] Proxy reverso terminando TLS e limitando requisições por IP
-- [ ] Senha do administrador trocada
-- [ ] `midia/` em disco com backup
+O arquivo gerado por `banco:exportar` contém e-mails de usuários; `backup*.json`
+está no `.gitignore`.
 
 ## Erros comuns
 
 **`Port 4107 is already in use`**
-Alguém já está na porta. Rode `npm run encerrar` e tente de novo. A porta é fixa
-de propósito para você não acabar com dois servidores em portas diferentes.
+Outro processo está na porta. Se foi o `npm run iniciar`, rode `npm run encerrar`;
+senão, veja [Porta presa (Windows)](#porta-presa-windows).
 
-**`Cannot find module '$lib/servidor/banco/gerado/client'`**
-O cliente do Prisma não foi gerado. `npm run banco:gerar`.
+**`npm run encerrar` diz que nenhum servidor está anotado, mas a porta continua ocupada**
+O servidor foi aberto com `npm run dev`/`preview` (que não anotam o processo) ou é
+de outro programa. Use `netstat -ano | findstr :4107` e `taskkill /PID <pid> /F`.
+
+**`Cannot find module '.../banco/gerado/client'`**
+O cliente do Prisma não foi gerado. Rode `npm run banco:gerar`.
 
 **`The table main.Usuario does not exist`**
-Banco sem migrations. `npm run banco:migrar && npm run banco:semear`.
+Banco sem migrations. Rode `npm run banco:migrar` e `npm run banco:semear` (ou
+`npm run preparar`).
 
-**`error: The datasource property 'url' is no longer supported in schema files`**
-Você está com um `schema.prisma` antigo. No Prisma 7 a URL vive no
-`prisma.config.ts`, e o `datasource` só declara o `provider`.
+**Login com a senha do seed não funciona**
+O seed não altera a senha de contas já existentes. Rode `npm run contas:locais`.
 
-**`Executable doesn't exist at .../chrome-headless-shell`**
-Navegador do Playwright ausente. `npx playwright install chromium`, ou aponte um
-já instalado com `CHROMIUM_EXECUTAVEL`.
+**`SEGREDO_SESSAO ainda e o valor de exemplo. Gere um proprio antes de servir midia.`**
+Em produção (`NODE_ENV=production`) o valor de exemplo é recusado. Gere um segredo
+e coloque no `.env`.
 
-**O vídeo não aparece e a fila mostra `FALHOU`**
-FFmpeg ausente ou fora do PATH. Confira `ffmpeg -version` e ajuste
-`CAMINHO_FFMPEG` no `.env`. A mensagem exata do erro fica na coluna do trabalho,
-em `/admin`.
+**Formulários falham em produção com erro de CSRF (POST de outra origem)**
+`ORIGIN` diferente da URL usada no navegador. Ajuste `ORIGIN` no `.env`.
 
-**A fonte demora a trocar / o texto aparece com outra fonte primeiro**
-Isso é intencional. A Inter é carregada sem bloquear a primeira pintura; até ela
-chegar o texto usa `system-ui`. Foi o que derrubou o FCP de 12,9 s para 0,68 s —
-veja [`docs/desempenho.md`](docs/desempenho.md).
+**`EMAIL_TRANSPORTE=resend exige RESEND_API_KEY.` / `EMAIL_TRANSPORTE=arquivo exige EMAIL_ARQUIVO.`**
+Falta a variável correspondente ao transporte escolhido.
 
-**Mudei o CSS e nada acontece no build de produção**
-Provavelmente você usou `:global(...)` num arquivo `.css`. Isso só existe dentro
-do bloco `<style>` do Svelte; em CSS global use o seletor descendente normal.
+**O servidor subiu na porta 3000**
+Foi iniciado com `node build/index.js`, que não lê o `.env`. Use `npm run iniciar`.
 
-**As telas continuam antigas mesmo depois do deploy**
-Service worker com cache velho. Em Configurações, use **Limpar dados baixados**,
-ou nas ferramentas do navegador: Application → Service Workers → Unregister.
+**Vídeo enviado não fica pronto e a fila mostra `FALHOU`**
+FFmpeg ausente ou fora do PATH. Confira `ffmpeg -version` e ajuste `CAMINHO_FFMPEG`
+(e `CAMINHO_FFPROBE`, se necessário). A mensagem do erro aparece na fila em `/admin`.
+
+**`Executable doesn't exist at ...chrome-headless-shell`**
+Falta o navegador do Playwright: `npx playwright install chromium`, ou aponte um já
+instalado com `CHROMIUM_EXECUTAVEL`.
+
+**As telas continuam antigas depois de atualizar**
+Cache do service worker. Em `/configuracoes`, use **Limpar dados baixados**, ou nas
+ferramentas do navegador: Application → Service Workers → Unregister.
 
 ## Documentação complementar
 
-| Arquivo                                                      | Conteúdo                                                  |
-| ------------------------------------------------------------ | --------------------------------------------------------- |
-| [`docs/sistema-visual.md`](docs/sistema-visual.md)           | Paleta, escala tipográfica, espaçamentos, regras de ícone |
-| [`docs/seguranca.md`](docs/seguranca.md)                     | Senhas, sessões, CSRF, dupla confirmação, papéis          |
-| [`docs/desempenho.md`](docs/desempenho.md)                   | Metodologia e números medidos                             |
-| [`docs/migracao-postgresql.md`](docs/migracao-postgresql.md) | Passo a passo da migração                                 |
-| [`docs/auditoria-visual.md`](docs/auditoria-visual.md)       | Comparação com as telas de referência                     |
-| [`RESUMO-DA-ENTREGA.md`](RESUMO-DA-ENTREGA.md)               | O que foi feito, pontos de atenção e próximos passos      |
-| [`docs/continuidade.md`](docs/continuidade.md)               | Regras, decisões e pendências para retomar o trabalho     |
+| Arquivo                                                      | Conteúdo                                         |
+| ------------------------------------------------------------ | ------------------------------------------------ |
+| [`docs/fontes-de-midia.md`](docs/fontes-de-midia.md)         | Origens de vídeo aceitas e como são verificadas  |
+| [`docs/seguranca.md`](docs/seguranca.md)                     | Senhas, sessões, CSRF, dupla confirmação, papéis |
+| [`docs/migracao-postgresql.md`](docs/migracao-postgresql.md) | Como trocar o SQLite pelo PostgreSQL             |
+| [`docs/sistema-visual.md`](docs/sistema-visual.md)           | Paleta, tipografia, espaçamentos e ícones        |
+| [`docs/desempenho.md`](docs/desempenho.md)                   | Metodologia e números medidos                    |
+| [`docs/continuidade.md`](docs/continuidade.md)               | Decisões e pendências para retomar o trabalho    |
 
 ---
 
@@ -579,3 +500,25 @@ Catálogo de demonstração com títulos fictícios.
 Nenhuma obra de terceiros é distribuída neste repositório.
 
 </div>
+
+<!-- GERENCIADOR-SERVIDORES:INICIO -->
+
+## Execução local
+
+Linha independente da plataforma Yōkira adaptada para Astra.
+
+Porta principal reservada: `3100`. As portas são administradas centralmente para permitir vários projetos abertos ao mesmo tempo.
+
+```powershell
+# Iniciar
+powershell -ExecutionPolicy Bypass -File "C:\Projetos\GERENCIADOR-SERVIDORES\servidores.ps1" iniciar "yokira-astra"
+
+# Consultar o estado
+powershell -ExecutionPolicy Bypass -File "C:\Projetos\GERENCIADOR-SERVIDORES\servidores.ps1" status
+
+# Encerrar
+powershell -ExecutionPolicy Bypass -File "C:\Projetos\GERENCIADOR-SERVIDORES\servidores.ps1" parar "yokira-astra"
+```
+
+Os registros de execução ficam em `C:\Projetos\GERENCIADOR-SERVIDORES\logs`. O gerenciador não copia arquivos `.env`; como os logs reproduzem a saída do próprio aplicativo, revise-os antes de compartilhar.
+<!-- GERENCIADOR-SERVIDORES:FIM -->
