@@ -1,0 +1,118 @@
+/* Arquivo: src/routes/admin/faixas/faixas.css */
+/* Formulário e prévia lado a lado no desktop, empilhados no celular. A prévia embaixo no
+   celular é a ordem certa: primeiro se escreve, depois se confere. */
+
+.faixa-editor {
+  margin-bottom: var(--espaco-8);
+  padding: var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-painel);
+  background: var(--cor-superficie);
+}
+
+.faixa-editor-cabecalho h2 {
+  margin: 0;
+  font-size: var(--texto-16);
+  color: var(--cor-texto);
+}
+
+.faixa-editor-cabecalho p {
+  margin: var(--espaco-1) 0 var(--espaco-4);
+  font-size: var(--texto-13);
+  color: var(--cor-texto-secundario);
+}
+
+.faixa-editor-colunas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-5);
+  align-items: start;
+}
+
+@media (min-width: 940px) {
+  .faixa-editor-colunas {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.faixa-forma {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+}
+
+.faixa-interruptor {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  font-size: var(--texto-14);
+  color: var(--cor-texto);
+  min-height: var(--alvo-toque);
+}
+
+.faixa-campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  font-size: var(--texto-13);
+  color: var(--cor-texto-secundario);
+}
+
+.faixa-campo input[type='text'],
+.faixa-campo textarea {
+  padding: var(--espaco-2) var(--espaco-3);
+  min-height: var(--alvo-toque);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background: var(--cor-fundo-elevado);
+  color: var(--cor-texto);
+  font: inherit;
+  font-size: var(--texto-14);
+  resize: vertical;
+}
+
+.faixa-campo input:focus-visible,
+.faixa-campo textarea:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: 1px;
+  border-color: var(--cor-marca);
+}
+
+.faixa-campo-cor input[type='color'] {
+  width: 100%;
+  height: var(--alvo-toque);
+  padding: 2px;
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-botao);
+  background: var(--cor-fundo-elevado);
+  cursor: pointer;
+}
+
+.faixa-dupla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--espaco-3);
+}
+
+.faixa-resposta {
+  margin: 0;
+  font-size: var(--texto-13);
+  color: var(--cor-sucesso);
+}
+
+.faixa-previa h3 {
+  margin: 0 0 var(--espaco-3);
+  font-size: var(--texto-13);
+  color: var(--cor-texto-secundario);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.faixa-previa-vazia {
+  margin: 0;
+  padding: var(--espaco-5);
+  border: 1px dashed var(--cor-borda);
+  border-radius: var(--raio-painel);
+  font-size: var(--texto-13);
+  color: var(--cor-texto-terciario);
+}

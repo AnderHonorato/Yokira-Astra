@@ -1,0 +1,37 @@
+/* Arquivo: src/routes/layout.css */
+
+.casca {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.casca-conteudo {
+  flex: 1 1 auto;
+  width: 100%;
+  max-width: var(--largura-maxima);
+  margin: 0 auto;
+  padding: 0 var(--espaco-4);
+  /* Espaco pra barra inferior nao cobrir o ultimo card. */
+  padding-bottom: calc(var(--altura-barra-inferior) + var(--espaco-8));
+}
+
+@media (min-width: 1024px) {
+  .casca-conteudo {
+    padding: 0 var(--espaco-8);
+    padding-bottom: var(--espaco-10);
+  }
+}
+
+/* Faixa editavel da home: mesma margem lateral das trilhas, respiro proprio acima e
+   abaixo pra ela nao encostar no banner nem no primeiro carrossel. */
+.home-faixa {
+  padding: 0 var(--espaco-4);
+  margin: var(--espaco-5) 0;
+}
+
+@media (min-width: 900px) {
+  .home-faixa {
+    padding: 0 var(--espaco-6);
+  }
+}

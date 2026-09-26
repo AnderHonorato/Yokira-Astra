@@ -1,0 +1,104 @@
+/* Arquivo: src/routes/admin/enviar/enviar.css */
+/* Duas colunas no desktop, uma no celular. A escolha do episódio fica ao lado, e não
+   antes, porque quem trabalha nesta tela alterna entre os dois lados o tempo todo. */
+
+.enviar-colunas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco-5);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .enviar-colunas {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+}
+
+.enviar-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-4);
+  padding: var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-painel);
+  background: var(--cor-superficie);
+}
+
+.enviar-bloco-largo {
+  margin-top: var(--espaco-5);
+}
+
+.enviar-passo {
+  display: flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  margin: 0;
+  font-size: var(--texto-16);
+  color: var(--cor-texto);
+}
+
+.enviar-passo span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--cor-marca-superficie);
+  color: var(--cor-marca-clara);
+  font-size: var(--texto-12);
+  font-weight: 700;
+}
+
+.enviar-espera,
+.enviar-alvo,
+.enviar-resposta {
+  margin: 0;
+  font-size: var(--texto-13);
+  color: var(--cor-texto-secundario);
+}
+
+.enviar-alvo strong {
+  color: var(--cor-texto);
+}
+
+.enviar-abas {
+  display: flex;
+  gap: var(--espaco-2);
+  border-bottom: 1px solid var(--cor-borda);
+}
+
+.enviar-abas button {
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-4);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  font: inherit;
+  font-size: var(--texto-14);
+  cursor: pointer;
+  transition:
+    color var(--transicao-rapida),
+    border-color var(--transicao-rapida);
+}
+
+.enviar-abas button:hover {
+  color: var(--cor-texto);
+}
+
+.enviar-abas button:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: -2px;
+}
+
+.enviar-aba-ativa {
+  color: var(--cor-texto);
+  border-bottom-color: var(--cor-marca);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enviar-abas button {
+    transition: none;
+  }
+}

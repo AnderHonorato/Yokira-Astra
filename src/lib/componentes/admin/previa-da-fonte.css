@@ -1,0 +1,38 @@
+/* Arquivo: src/lib/componentes/admin/previa-da-fonte.css */
+/* Prévia pequena de propósito: ela é um teste, não a tela de assistir. Ocupar meia
+   página aqui empurraria o botão de salvar para fora do campo de visão. */
+
+.previa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  max-width: 480px;
+}
+
+.previa-video,
+.previa-quadro {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--raio-card);
+  border: 1px solid var(--cor-borda);
+  background: #000;
+}
+
+.previa-quadro {
+  position: relative;
+  overflow: hidden;
+}
+
+.previa-iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.previa-nota {
+  margin: 0;
+  font-size: var(--texto-12);
+  color: var(--cor-texto-terciario);
+}

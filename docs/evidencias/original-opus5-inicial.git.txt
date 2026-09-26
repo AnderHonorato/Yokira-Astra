@@ -1,0 +1,17 @@
+HEAD=d35f0631d30606e2f9472dd5ad20f6cae72bee35
+BRANCH=claude/promo-yokira-anexado-cs3xqu
+REMOTE=origin	https://github.com/AnderHonorato/yokira-animees.git (fetch) origin	https://github.com/AnderHonorato/yokira-animees.git (push) 
+STATUS:
+ M .gitignore
+ M .prettierignore
+ M src/lib/servidor/banco/catalogo.ts
+ M src/lib/servidor/banco/mapear-titulo.ts
+ M src/lib/servidor/banco/titulo.ts
+ M src/routes/+page.svelte
+ M src/routes/+page.ts
+?? src/lib/componentes/home/ordem-das-trilhas.ts
+?? src/lib/servidor/banco/recomendacoes.ts
+?? src/lib/servidor/recomendacoes/
+?? src/routes/api/para-voce/
+?? testes/integracao/recomendacoes.teste.ts
+?? testes/unitarios/recomendacoes-pessoais.teste.ts

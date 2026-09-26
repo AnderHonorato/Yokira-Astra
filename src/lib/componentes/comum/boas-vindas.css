@@ -1,0 +1,58 @@
+/* Arquivo: src/lib/componentes/comum/boas-vindas.css */
+/* Diálogo nativo: o ::backdrop é o véu, e não precisa de um elemento a mais no HTML. */
+
+.boas-vindas {
+  position: relative;
+  width: min(560px, calc(100vw - var(--espaco-8)));
+  padding: var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-painel);
+  background: var(--cor-fundo-elevado);
+  color: var(--cor-texto);
+  box-shadow: var(--sombra-card);
+}
+
+.boas-vindas::backdrop {
+  background: var(--cor-cortina-dialogo);
+}
+
+.boas-vindas[open] {
+  animation: surgir var(--transicao-media) both;
+}
+
+.boas-vindas-fechar {
+  position: absolute;
+  top: var(--espaco-2);
+  right: var(--espaco-2);
+  display: grid;
+  place-items: center;
+  width: var(--alvo-toque);
+  height: var(--alvo-toque);
+  border: 0;
+  border-radius: var(--raio-botao);
+  background: transparent;
+  color: var(--cor-texto-secundario);
+  cursor: pointer;
+}
+
+.boas-vindas-fechar:hover {
+  background: var(--cor-superficie-hover);
+  color: var(--cor-texto);
+}
+
+.boas-vindas-fechar:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: 2px;
+}
+
+.boas-vindas-acoes {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--espaco-4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .boas-vindas[open] {
+    animation: none;
+  }
+}

@@ -1,0 +1,46 @@
+/* Arquivo: src/lib/componentes/player/retomar-progresso.css */
+/* Fica ancorado embaixo, à esquerda: no centro cobriria o quadro que a pessoa está
+   olhando para decidir. Surge com uma animação curta, que some com movimento reduzido. */
+
+.retomar {
+  position: absolute;
+  left: var(--espaco-4);
+  bottom: calc(var(--espaco-8) + var(--espaco-4));
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-3);
+  max-width: min(360px, calc(100% - var(--espaco-8)));
+  padding: var(--espaco-4);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-painel);
+  background: var(--cor-fundo-elevado);
+  box-shadow: var(--sombra-card);
+  animation: surgir var(--transicao-media) both;
+}
+
+.retomar-texto {
+  margin: 0;
+  font-size: var(--texto-14);
+  color: var(--cor-texto);
+}
+
+.retomar-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+}
+
+@media (max-width: 520px) {
+  .retomar {
+    left: var(--espaco-3);
+    right: var(--espaco-3);
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .retomar {
+    animation: none;
+  }
+}

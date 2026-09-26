@@ -1,0 +1,39 @@
+/* Arquivo: src/lib/componentes/comum/metricas-de-titulo.css */
+/* Números discretos: eles informam, não competem com o nome do título. Ficam na cor
+   secundária e no mesmo tamanho da linha de meta em que moram. */
+
+.metricas {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-3);
+  color: var(--cor-texto-terciario);
+  font-variant-numeric: tabular-nums;
+}
+
+.metricas-pequeno {
+  font-size: var(--texto-11);
+}
+
+.metricas-normal {
+  font-size: var(--texto-13);
+  color: var(--cor-texto-secundario);
+}
+
+.metricas-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Só para leitor de tela: na tela o ícone já diz o que o número é. */
+.metricas-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,70 @@
+/* Arquivo: src/lib/componentes/comum/faixa-promocional.css */
+/* Retângulo com degradê. As cores chegam em variáveis, escritas pelo componente a partir
+   do que foi validado no servidor — nenhuma regra aqui é montada com texto de fora.
+
+   Altura mínima em vez de altura fixa: um texto mais longo cresce a faixa em vez de
+   vazar para fora dela. */
+
+.faixa {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--espaco-4);
+  min-height: 112px;
+  padding: var(--espaco-5) var(--espaco-6);
+  border-radius: var(--raio-painel);
+  background: linear-gradient(120deg, var(--faixa-inicio), var(--faixa-fim));
+  color: var(--faixa-texto);
+}
+
+.faixa-conteudo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espaco-2);
+  min-width: 0;
+}
+
+.faixa-titulo {
+  margin: 0;
+  font-size: var(--texto-20);
+  line-height: 1.25;
+}
+
+.faixa-texto {
+  margin: 0;
+  font-size: var(--texto-14);
+  max-width: 68ch;
+  opacity: 0.92;
+}
+
+.faixa-botao {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--alvo-toque);
+  padding: 0 var(--espaco-5);
+  border-radius: var(--raio-botao);
+  /* O botão inverte: fundo na cor do texto, texto na cor do fundo. Assim ele continua
+     legível seja qual for o degradê escolhido. */
+  background: var(--faixa-texto);
+  color: var(--faixa-inicio);
+  font-size: var(--texto-14);
+  font-weight: 600;
+}
+
+.faixa-botao:focus-visible {
+  outline: 2px solid var(--faixa-texto);
+  outline-offset: 3px;
+}
+
+@media (max-width: 640px) {
+  .faixa {
+    padding: var(--espaco-4);
+  }
+
+  .faixa-botao {
+    width: 100%;
+    justify-content: center;
+  }
+}
