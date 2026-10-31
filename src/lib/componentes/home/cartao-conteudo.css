@@ -78,10 +78,46 @@
 }
 
 /* yokira-poster-2026: cartazes animados sem deformar a capa nem usar 3D. */
-.cartao-link{isolation:isolate;outline-offset:4px;transition:transform .3s cubic-bezier(.22,1,.36,1)}
-.cartao-link::after{content:'';position:absolute;inset:0;opacity:0;pointer-events:none;border:1px solid var(--cor-marca-superficie);border-radius:var(--raio-chip);transition:opacity .3s}
-.cartao:hover .cartao-link,.cartao:focus-within .cartao-link{transform:translateY(-4px)}
-.cartao:hover .cartao-link::after,.cartao:focus-within .cartao-link::after{opacity:.65}
-.cartao-selo{z-index:2;box-shadow:0 3px 12px #0004}
-.cartao:hover .cartao-titulo,.cartao:focus-within .cartao-titulo{color:var(--cor-marca)}
-@media(prefers-reduced-motion:reduce){.cartao-link,.cartao-link::after{transition:none}}
+.cartao-link {
+  isolation: isolate;
+  outline-offset: 4px;
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.cartao-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+  border: 1px solid var(--cor-marca-superficie);
+  border-radius: var(--raio-chip);
+  transition: opacity 0.3s;
+}
+
+.cartao:hover .cartao-link,
+.cartao:focus-within .cartao-link {
+  transform: translateY(-4px);
+}
+
+.cartao:hover .cartao-link::after,
+.cartao:focus-within .cartao-link::after {
+  opacity: 0.65;
+}
+
+.cartao-selo {
+  z-index: 2;
+  box-shadow: 0 3px 12px #0004;
+}
+
+.cartao:hover .cartao-titulo,
+.cartao:focus-within .cartao-titulo {
+  color: var(--cor-marca);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cartao-link,
+  .cartao-link::after {
+    transition: none;
+  }
+}
