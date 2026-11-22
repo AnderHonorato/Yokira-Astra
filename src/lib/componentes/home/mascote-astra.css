@@ -1,0 +1,158 @@
+/* Uma faixa no fluxo natural da home; nunca um overlay sobre player ou navegação. */
+.astra-guia {
+  --astra-roxo: var(--cor-marca);
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--espaco-4);
+  margin: var(--espaco-5) var(--espaco-4);
+  padding: var(--espaco-3) var(--espaco-5);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio-painel);
+  background:
+    radial-gradient(ellipse at 12% 35%, var(--cor-marca-suave), transparent 42%),
+    var(--cor-superficie);
+  overflow: hidden;
+  isolation: isolate;
+}
+.astra-ilustracao {
+  width: 110px;
+  height: 110px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.astra-ilustracao:before {
+  content: '';
+  position: absolute;
+  inset: 22px;
+  border-radius: 50%;
+  background: var(--cor-marca-suave);
+  filter: blur(16px);
+}
+.astra-ilustracao img {
+  position: relative;
+  width: 106px;
+  height: 106px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 12px rgba(139, 92, 246, 0.2));
+  transition: transform var(--transicao-media);
+}
+.astra-guia:hover .astra-ilustracao img {
+  transform: translateY(-3px);
+}
+.astra-legenda {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  color: var(--cor-marca-clara);
+  font-size: var(--texto-11);
+  letter-spacing: 0.12em;
+  font-weight: 700;
+}
+.astra-estrela {
+  width: 7px;
+  height: 7px;
+  transform: rotate(45deg);
+  background: var(--cor-marca);
+  box-shadow: 0 0 9px var(--cor-marca);
+}
+.astra-apresentacao h2 {
+  margin: 5px 0;
+  color: var(--cor-texto);
+  font-size: clamp(17px, 1.7vw, 24px);
+  line-height: 1.2;
+}
+.astra-apresentacao p {
+  margin: 0;
+  color: var(--cor-texto-secundario);
+  font-size: var(--texto-13);
+  line-height: 1.6;
+}
+.astra-apresentacao .astra-resposta {
+  color: var(--cor-texto);
+  margin-top: var(--espaco-3);
+}
+.astra-conhecer {
+  min-height: var(--alvo-toque);
+  display: inline-flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espaco-3);
+  padding: 0 var(--espaco-4);
+  border-radius: var(--raio-botao);
+  border: 1px solid var(--cor-marca);
+  background: var(--cor-marca-superficie);
+  color: var(--cor-texto-sobre-marca);
+  font-weight: 650;
+  font-size: var(--texto-12);
+  cursor: pointer;
+}
+.astra-conhecer:hover {
+  filter: brightness(1.1);
+}
+.astra-conhecer span {
+  font-size: 18px;
+  font-weight: 400;
+}
+.astra-atalhos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espaco-2);
+  margin-top: var(--espaco-3);
+}
+.astra-atalhos a {
+  min-height: var(--alvo-toque);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espaco-2);
+  padding: var(--espaco-2) var(--espaco-4);
+  border-radius: var(--raio-botao);
+  border: 1px solid var(--cor-borda);
+  background: var(--cor-fundo-elevado);
+  color: var(--cor-texto);
+  font-size: var(--texto-12);
+}
+.astra-atalhos a:hover {
+  border-color: var(--cor-marca);
+}
+.astra-conhecer:focus-visible,
+.astra-atalhos a:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: 3px;
+}
+@media (max-width: 700px) {
+  .astra-guia {
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: var(--espaco-3);
+    padding: var(--espaco-3);
+  }
+  .astra-ilustracao,
+  .astra-ilustracao img {
+    width: 70px;
+    height: 70px;
+  }
+  .astra-apresentacao h2 {
+    font-size: var(--texto-16);
+  }
+  .astra-apresentacao p {
+    font-size: var(--texto-12);
+  }
+  .astra-conhecer {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+@media (min-width: 900px) {
+  .astra-guia {
+    margin-inline: var(--espaco-6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .astra-ilustracao img {
+    transition: none;
+  }
+  .astra-guia:hover .astra-ilustracao img {
+    transform: none;
+  }
+}
