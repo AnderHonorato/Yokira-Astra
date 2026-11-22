@@ -64,6 +64,15 @@ export function ipv6Privado(endereco: string): boolean {
   const embutido = limpo.match(/(\d{1,3}(?:\.\d{1,3}){3})$/);
   if (embutido) return ipv4Privado(embutido[1]);
 
+  // A API URL normaliza ::ffff:127.0.0.1 para ::ffff:7f00:1.
+  // Conferir somente o sufixo decimal deixaria o loopback passar pelo filtro SSRF.
+  const mapeado = limpo.match(/^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/);
+  if (mapeado) {
+    const alto = Number.parseInt(mapeado[1], 16);
+    const baixo = Number.parseInt(mapeado[2], 16);
+    return ipv4Privado([alto >>> 8, alto & 255, baixo >>> 8, baixo & 255].join('.'));
+  }
+
   const primeiro = limpo.split(':')[0];
   if (primeiro.startsWith('fe8') || primeiro.startsWith('fe9')) return true; // link-local
   if (primeiro.startsWith('fea') || primeiro.startsWith('feb')) return true;

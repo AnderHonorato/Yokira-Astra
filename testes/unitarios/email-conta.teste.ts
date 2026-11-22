@@ -2,6 +2,9 @@
 // Conteudo dos e-mails e escolha de transporte. Nada aqui envia nada.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   mensagemDeRecuperacao,
   mensagemDeVerificacao
@@ -95,6 +98,22 @@ describe('transporte', () => {
     await expect(enviarEmailSemQuebrar(mensagemDeVerificacao('a@b.c', 'A', 'x'))).resolves.toBe(
       false
     );
+  });
+
+  it('transporte de arquivo cria pasta de saída ausente antes de gravar', async () => {
+    const raiz = mkdtempSync(join(tmpdir(), 'yokira-email-'));
+    const destino = join(raiz, 'caixa', 'subpasta', 'emails.jsonl');
+    try {
+      process.env.EMAIL_TRANSPORTE = 'arquivo';
+      process.env.EMAIL_ARQUIVO = destino;
+      const mensagem = mensagemDeVerificacao('pessoa@yokira.local', 'Ander', `${ORIGEM}/verificar`);
+      await expect(enviarEmail(mensagem)).resolves.toBeUndefined();
+      const registros = readFileSync(destino, 'utf8').trim().split('\n');
+      expect(registros).toHaveLength(1);
+      expect(JSON.parse(registros[0]).assunto).toContain('Confirme seu e-mail');
+    } finally {
+      rmSync(raiz, { recursive: true, force: true });
+    }
   });
 
   it('no transporte console o envio da certo e imprime', async () => {

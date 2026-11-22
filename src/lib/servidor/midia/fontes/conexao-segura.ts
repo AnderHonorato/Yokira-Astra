@@ -11,6 +11,7 @@
 import { request as pedidoHttp, type IncomingMessage } from 'node:http';
 import { request as pedidoHttps } from 'node:https';
 import { lookup as resolverDns } from 'node:dns/promises';
+import { isIP } from 'node:net';
 import { enderecoPrivado } from '../../armazenamento/endereco-privado.js';
 
 export const TEMPO_LIMITE_PADRAO_MS = 8000;
@@ -39,7 +40,17 @@ export async function resolverEnderecoPublico(url: URL): Promise<string> {
     throw new ErroDeFonte('Só aceitamos endereços http e https.', 'ENDERECO');
   }
 
-  const resolvidos = await resolverDns(url.hostname, { all: true }).catch(() => {
+  // Em Node/Linux, URL.hostname mantém colchetes em IPv6 literal; dns.lookup('[::1]')
+  // pode falhar com ENOTFOUND e disfarçar o IP privado como erro de DNS.
+  const host = url.hostname.replace(/^\[|\]$/g, '');
+  if (isIP(host)) {
+    if (enderecoPrivado(host)) {
+      throw new ErroDeFonte('Esse endereço aponta para a rede interna do servidor.', 'ENDERECO');
+    }
+    return host;
+  }
+
+  const resolvidos = await resolverDns(host, { all: true }).catch(() => {
     throw new ErroDeFonte('Não consegui encontrar esse endereço na internet.', 'ENDERECO');
   });
 

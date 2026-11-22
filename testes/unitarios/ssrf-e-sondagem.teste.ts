@@ -12,7 +12,21 @@ import {
   resolverEnderecoPublico
 } from '../../src/lib/servidor/midia/fontes/conexao-segura';
 import { lerEndereco, sondar } from '../../src/lib/servidor/midia/fontes/sondar-url';
+import { enderecoPrivado } from '../../src/lib/servidor/armazenamento/endereco-privado';
 import type { RespostaAberta } from '../../src/lib/servidor/midia/fontes/amostrar-resposta';
+
+describe('endereços IPv6 canônicos e IPv4 mapeados', () => {
+  it('recusa endereços IPv4 privados que a URL reescreve em hexadecimal', () => {
+    expect(enderecoPrivado('::ffff:7f00:1')).toBe(true);
+    expect(enderecoPrivado('::ffff:a9fe:a9fe')).toBe(true);
+    expect(enderecoPrivado('::ffff:c0a8:101')).toBe(true);
+    expect(enderecoPrivado('[::ffff:7f00:1]')).toBe(true);
+  });
+
+  it('não trata um IPv4 mapeado público como endereço interno', () => {
+    expect(enderecoPrivado('::ffff:808:808')).toBe(false);
+  });
+});
 
 describe('resolverEnderecoPublico', () => {
   it('recusa esquema que não é http nem https', async () => {

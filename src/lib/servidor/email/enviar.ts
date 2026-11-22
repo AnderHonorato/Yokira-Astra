@@ -3,7 +3,8 @@
 // imprime o link no terminal, entao da pra testar o fluxo inteiro sem contratar nada.
 // `resend` fala HTTP direto com a API — sem dependencia nova no package.json.
 
-import { appendFile } from 'node:fs/promises';
+import { appendFile, mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
 import type { Mensagem } from './mensagens.js';
 
 export type Transporte = 'console' | 'arquivo' | 'resend';
@@ -62,6 +63,8 @@ function imprimirNoTerminal(mensagem: Mensagem): void {
 async function gravarEmArquivo(mensagem: Mensagem): Promise<void> {
   const destino = process.env.EMAIL_ARQUIVO;
   if (!destino) throw new Error('EMAIL_TRANSPORTE=arquivo exige EMAIL_ARQUIVO.');
+  // No CI e na primeira execução a pasta de mídia pode não existir ainda.
+  await mkdir(dirname(destino), { recursive: true, mode: 0o700 });
   await appendFile(
     destino,
     `${JSON.stringify({ ...mensagem, em: new Date().toISOString() })}\n`,
