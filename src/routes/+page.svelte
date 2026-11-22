@@ -2,6 +2,7 @@
 <!-- Home: hero rotativo + trilhas Populares / Em alta / Novidades (imagens 1 e 2). -->
 <script lang="ts">
   import BannerDestaque from '$componentes/home/banner-destaque.svelte';
+  import MascoteAstra from '$componentes/home/mascote-astra.svelte';
   import FaixaPromocional from '$componentes/comum/faixa-promocional.svelte';
   import TrilhaConteudo from '$componentes/home/trilha-conteudo.svelte';
   import { intercalarTrilhas } from '$componentes/home/ordem-das-trilhas';
@@ -42,6 +43,7 @@
 </svelte:head>
 
 <BannerDestaque destaques={catalogo.destaques} />
+<MascoteAstra />
 
 <!-- Faixa escrita no painel. So aparece quando alguem ligou E escreveu algo nela. -->
 {#if catalogo.faixa}
